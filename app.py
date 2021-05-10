@@ -1,5 +1,6 @@
 import os
 import shutil
+import tempfile
 from flask import Flask, request, send_file
 
 import numpy as np
@@ -12,18 +13,20 @@ app = Flask(__name__)
 
 @app.route("/handwrite/test", methods=["POST"])
 def receive_image():
+    temp_dir = tempfile.mkdtemp()
     imgarr = np.frombuffer(request.data, np.uint8)
     img = cv2.imdecode(imgarr, cv2.IMREAD_COLOR)
-    cv2.imwrite("temp.jpg", img)
+    cv2.imwrite(os.path.join(temp_dir, "temp.jpg"), img)
     converters(
-        "temp.jpg",
-        os.path.dirname(os.path.abspath(__file__)) + "/temp",
-        os.path.dirname(os.path.abspath(__file__)) + "/temp",
+        os.path.join(temp_dir, "temp.jpg"),
+        os.path.join(temp_dir, "temp"),
+        os.path.join(temp_dir, "temp"),
         os.path.dirname(os.path.abspath(__file__)) + "/default.json",
     )
-    fontfile = send_file("temp/MyFont.ttf", as_attachment=True)
-    shutil.rmtree("temp/")
-    os.remove("temp.jpg")
+    fontfile = send_file(
+        os.path.join(temp_dir, "temp", "MyFont.ttf"), as_attachment=True
+    )
+    shutil.rmtree(temp_dir)
     return fontfile
 
 
