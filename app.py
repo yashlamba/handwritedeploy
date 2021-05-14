@@ -1,7 +1,7 @@
 import os
 import shutil
 import tempfile
-from flask import Flask, request, send_file, jsonify
+from flask import Flask, request, send_file, jsonify, abort
 from flask.wrappers import Response
 
 import numpy as np
@@ -55,14 +55,20 @@ class IO:
                 self.main_process(self.q.pop(0))
 
     def main_process(self, path):
-        with tempfile.TemporaryDirectory() as d:
-            print(path)
-            converters(
-                path,
-                os.path.join(d),
-                self.out_file_dir + os.sep + path.split(os.sep)[-1].split(".")[0],
-                os.path.dirname(os.path.abspath(__file__)) + "/default.json",
-            )
+        temp_dir = tempfile.mkdtemp()
+        os.makedirs(
+            self.out_file_dir + os.sep + path.split(os.sep)[-1].split(".")[0]
+        )
+        converters(
+            path,
+            temp_dir,
+            self.out_file_dir + os.sep + path.split(os.sep)[-1].split(".")[0],
+            os.path.dirname(os.path.abspath(__file__)) + "/default.json",
+        )
+        shutil.rmtree(temp_dir)
+
+    def font_path(self, path):
+        return self.out_file_dir + os.sep + path + ".ttf"
 
 
 @app.route("/handwrite/test", methods=["POST"])
@@ -70,30 +76,30 @@ def receive_image():
     app.logger.info("requested")
     in_files_dir = os.path.dirname(os.path.abspath(__file__))
     imgarr = np.frombuffer(request.data, np.uint8)
-    print(app.config["IO"])
     path = app.config["IO"].add_image(imgarr)
-    # app.config["IO"].force_start()
-    # cv2.imwrite(os.path.join(temp_dir, "temp.jpg"), img)
-    # converters(
-    #     os.path.join(temp_dir, "temp.jpg"),
-    #     os.path.join(temp_dir, "temp"),
-    #     os.path.join(temp_dir, "temp"),
-    #     os.path.dirname(os.path.abspath(__file__)) + "/default.json",
-    # )
-    # fontfile = send_file(
-    #     os.path.join(temp_dir, "temp", "MyFont.ttf"), as_attachment=True
-    # )
-    # shutil.rmtree(temp_dir)
-
     return jsonify({"path": path})
 
 
 @app.route("/handwrite/<path>")
 def process_status(path):
-    if app.config["IO"].check_font(path + os.sep + "MyFont.ttf"):
+    if app.config["IO"].check_font(path + os.sep + "MyFont"):
         return "Done"
     else:
         return "Not Yet"
+
+
+@app.route("/handwrite/fetch/<path>", methods=["POST"])
+def fetch_font(path):
+    if app.config["IO"].check_font(path + os.sep + "MyFont"):
+        fontfile = send_file(
+            app.config["IO"].font_path(path + os.sep + "MyFont"),
+            as_attachment=True,
+        )
+        shutil.rmtree(app.config["IO"].out_file_dir + os.sep + path)
+        os.remove(app.config["IO"].in_files_dir + os.sep + path + ".jpg")
+        return fontfile
+    else:
+        abort(404)
 
 
 # Request ->
