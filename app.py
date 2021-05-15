@@ -22,6 +22,9 @@ class IO:
         self.out_file_dir = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "outfiles"
         )
+        os.makedirs(self.in_files_dir)
+        os.makedirs(self.out_file_dir)
+        # self.p = 0
         self.q = []
         x = threading.Thread(target=self.force_start)
         x.start()
@@ -38,13 +41,14 @@ class IO:
 
     def force_start(self):
         while True:
-            print(threading.active_count())
+            # print(threading.active_count(), "\t", self.p)
             if self.q:
                 t = threading.Thread(target=self.main_process, args = (self.q.pop(0),))
                 t.start()
 
     def main_process(self, path):
         semaphore.acquire()
+        # self.p += 1
         temp_dir = tempfile.mkdtemp()
         os.makedirs(
             self.out_file_dir + os.sep + path.split(os.sep)[-1].split(".")[0]
@@ -57,6 +61,7 @@ class IO:
         )
         shutil.rmtree(temp_dir)
         semaphore.release()
+        # self.p -= 1
 
     def font_path(self, path):
         return self.out_file_dir + os.sep + path + ".ttf"
