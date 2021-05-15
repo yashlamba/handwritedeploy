@@ -5,6 +5,7 @@ WORKDIR /app
 RUN apt-get update
 RUN apt-get install ffmpeg libsm6 libxext6  -y
 RUN apt-get install -y wget
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 RUN wget -O fontforge https://github.com/fontforge/fontforge/releases/download/20201107/FontForge-2020-11-07-21ad4a1-x86_64.AppImage
 RUN chmod +x fontforge
 RUN mv fontforge /usr/bin/
