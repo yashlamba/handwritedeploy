@@ -22,8 +22,8 @@ class IO:
         self.out_file_dir = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "outfiles"
         )
-        os.makedirs(self.in_files_dir)
-        os.makedirs(self.out_file_dir)
+        os.makedirs(self.in_files_dir, exist_ok=True)
+        os.makedirs(self.out_file_dir, exist_ok=True)
         # self.p = 0
         self.q = []
         x = threading.Thread(target=self.force_start)
