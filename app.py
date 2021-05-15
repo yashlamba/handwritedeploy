@@ -23,7 +23,6 @@ class IO:
             os.path.dirname(os.path.abspath(__file__)), "outfiles"
         )
         self.q = []
-        self.processes = []
         x = threading.Thread(target=self.force_start)
         x.start()
 
@@ -39,15 +38,10 @@ class IO:
 
     def force_start(self):
         while True:
-            # print(threading.active_count())
-            # print(len(self.processes))
-            if self.q and len(self.processes) < 5:
-                print(len(self.processes))
+            print(threading.active_count())
+            if self.q:
                 t = threading.Thread(target=self.main_process, args = (self.q.pop(0),))
-                self.processes.append(t)
                 t.start()
-            self.processes = [t for t in self.processes if t.is_alive()]
-            # print([t.is_alive() for t in self.processes])
 
     def main_process(self, path):
         semaphore.acquire()
