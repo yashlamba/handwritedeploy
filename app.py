@@ -12,20 +12,7 @@ import threading
 
 app = Flask(__name__)
 
-
-# Q = []
-
-# class fontforge():
-#     self.processes = 0
-#     while q:
-#         while self.processes < 5:
-#             process(q.pop())
-#             self.process += 1
-
-#     process()
-#         when done:
-#             self.processes -= 1
-
+semaphore = threading.Semaphore(5)
 
 class IO:
     def __init__(self):
@@ -36,6 +23,7 @@ class IO:
             os.path.dirname(os.path.abspath(__file__)), "outfiles"
         )
         self.q = []
+        self.processes = []
         x = threading.Thread(target=self.force_start)
         x.start()
 
@@ -51,10 +39,18 @@ class IO:
 
     def force_start(self):
         while True:
-            if self.q:
-                self.main_process(self.q.pop(0))
+            # print(threading.active_count())
+            # print(len(self.processes))
+            if self.q and len(self.processes) < 5:
+                print(len(self.processes))
+                t = threading.Thread(target=self.main_process, args = (self.q.pop(0),))
+                self.processes.append(t)
+                t.start()
+            self.processes = [t for t in self.processes if t.is_alive()]
+            # print([t.is_alive() for t in self.processes])
 
     def main_process(self, path):
+        semaphore.acquire()
         temp_dir = tempfile.mkdtemp()
         os.makedirs(
             self.out_file_dir + os.sep + path.split(os.sep)[-1].split(".")[0]
@@ -66,6 +62,7 @@ class IO:
             os.path.dirname(os.path.abspath(__file__)) + "/default.json",
         )
         shutil.rmtree(temp_dir)
+        semaphore.release()
 
     def font_path(self, path):
         return self.out_file_dir + os.sep + path + ".ttf"
@@ -77,8 +74,8 @@ def receive_image():
     in_files_dir = os.path.dirname(os.path.abspath(__file__))
     imgarr = np.frombuffer(request.data, np.uint8)
     path = app.config["IO"].add_image(imgarr)
-    return jsonify({"path": path})
 
+    return jsonify({"path": path})
 
 @app.route("/handwrite/<path>")
 def process_status(path):

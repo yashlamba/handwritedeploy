@@ -22,7 +22,7 @@ async def make_account():
     async with aiohttp.ClientSession() as session:
         post_tasks = []
         # prepare the coroutines that post
-        async for x in make_numbers(1, 6):
+        async for x in make_numbers(1, 20):
             post_tasks.append(do_post(session, x))
         # now execute them all at once
         await asyncio.gather(*post_tasks)
@@ -41,8 +41,9 @@ async def do_post(session, i):
                 break
             
         # print("-> Created account number %d" % x)
-        with open(f"new{i}.ttf", "wb+") as f:
-            f.write(font.content)
+        print(f"FETCHED {i}:", font.content[:5])
+        # with open(f"new{i}.ttf", "wb+") as f:
+        #     f.write(font.content)
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(make_account())
