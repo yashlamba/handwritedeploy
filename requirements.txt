@@ -1,3 +1,2 @@
-handwrite==0.2.0
 Flask==1.1.2
 numpy
