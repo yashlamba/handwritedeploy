@@ -17,5 +17,4 @@ COPY . .
 RUN pip install -r requirements.txt
 COPY default.json default.json
 
-ENTRYPOINT ["python3"]
-CMD ["app.py"]
+CMD gunicorn wsgi:app --bind 0.0.0.0:$PORT
