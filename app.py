@@ -42,6 +42,7 @@ class IO:
 
     def force_start(self):
         while True:
+            gc.collect()
             # print(threading.active_count(), "\t", self.p)
             if self.q:
                 t = threading.Thread(target=self.main_process, args = (self.q.pop(0),))
@@ -61,7 +62,6 @@ class IO:
             os.path.dirname(os.path.abspath(__file__)) + "/default.json",
         )
         shutil.rmtree(temp_dir)
-        gc.collect()
         semaphore.release()
         # self.p -= 1
 
