@@ -17,4 +17,4 @@ COPY . .
 RUN pip install -r requirements.txt
 COPY default.json default.json
 
-CMD ["gunicorn", "app:create_app()", "--bind", "0.0.0.0:5000"]
+CMD ["gunicorn", "app:create_app()", "--bind", "0.0.0.0:$PORT"]
