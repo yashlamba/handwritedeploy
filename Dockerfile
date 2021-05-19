@@ -11,10 +11,10 @@ RUN cd fontforge && mkdir build && cd build && cmake -GNinja .. && ninja && ninj
 # RUN cp /usr/local/lib/python/dist-packages/* /usr/lib/python/dist-packages
 RUN git clone --depth 1 --branch server https://github.com/cod-ed/handwrite
 RUN cd handwrite && pip install -e .
-
+ENV PORT=5000
 # RUN cd ..
 COPY . .
 RUN pip install -r requirements.txt
 COPY default.json default.json
 
-CMD ["gunicorn", "app:create_app()", "--bind", "0.0.0.0:$PORT"]
+CMD ["gunicorn", "app:create_app()"]
