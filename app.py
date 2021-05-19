@@ -3,6 +3,7 @@ import shutil
 import tempfile
 from flask import Flask, request, send_file, jsonify, abort
 from flask.wrappers import Response
+import gc
 
 import numpy as np
 import cv2
@@ -60,6 +61,7 @@ class IO:
             os.path.dirname(os.path.abspath(__file__)) + "/default.json",
         )
         shutil.rmtree(temp_dir)
+        gc.collect()
         semaphore.release()
         # self.p -= 1
 
