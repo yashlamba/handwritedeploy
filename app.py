@@ -11,9 +11,9 @@ from hashlib import sha256
 from handwrite.cli import converters
 import threading
 
-app = Flask(__name__)
 
 # semaphore = threading.Semaphore(5)
+
 
 class IO:
     def __init__(self):
@@ -53,9 +53,7 @@ class IO:
         # semaphore.acquire()
         # self.p += 1
         temp_dir = tempfile.mkdtemp()
-        os.makedirs(
-            self.out_file_dir + os.sep + path.split(os.sep)[-1].split(".")[0]
-        )
+        os.makedirs(self.out_file_dir + os.sep + path.split(os.sep)[-1].split(".")[0])
         converters(
             path,
             temp_dir,
@@ -70,35 +68,41 @@ class IO:
         return self.out_file_dir + os.sep + path + ".ttf"
 
 
-@app.route("/handwrite/test", methods=["POST"])
-def receive_image():
-    app.logger.info("requested")
-    in_files_dir = os.path.dirname(os.path.abspath(__file__))
-    imgarr = np.frombuffer(request.data, np.uint8)
-    path = app.config["IO"].add_image(imgarr)
+def create_app():
+    app = Flask(__name__)
 
-    return jsonify({"path": path})
+    app.config["IO"] = IO()
 
-@app.route("/handwrite/<path>")
-def process_status(path):
-    if app.config["IO"].check_font(path + os.sep + "MyFont"):
-        return "Done"
-    else:
-        return "Not Yet"
+    @app.route("/handwrite/test", methods=["POST"])
+    def receive_image():
+        app.logger.info("requested")
+        in_files_dir = os.path.dirname(os.path.abspath(__file__))
+        imgarr = np.frombuffer(request.data, np.uint8)
+        path = app.config["IO"].add_image(imgarr)
 
+        return jsonify({"path": path})
 
-@app.route("/handwrite/fetch/<path>", methods=["POST"])
-def fetch_font(path):
-    if app.config["IO"].check_font(path + os.sep + "MyFont"):
-        fontfile = send_file(
-            app.config["IO"].font_path(path + os.sep + "MyFont"),
-            as_attachment=True,
-        )
-        shutil.rmtree(app.config["IO"].out_file_dir + os.sep + path)
-        os.remove(app.config["IO"].in_files_dir + os.sep + path + ".jpg")
-        return fontfile
-    else:
-        abort(404)
+    @app.route("/handwrite/<path>")
+    def process_status(path):
+        if app.config["IO"].check_font(path + os.sep + "MyFont"):
+            return "Done"
+        else:
+            return "Not Yet"
+
+    @app.route("/handwrite/fetch/<path>", methods=["POST"])
+    def fetch_font(path):
+        if app.config["IO"].check_font(path + os.sep + "MyFont"):
+            fontfile = send_file(
+                app.config["IO"].font_path(path + os.sep + "MyFont"),
+                as_attachment=True,
+            )
+            shutil.rmtree(app.config["IO"].out_file_dir + os.sep + path)
+            os.remove(app.config["IO"].in_files_dir + os.sep + path + ".jpg")
+            return fontfile
+        else:
+            abort(404)
+
+    return app
 
 
 # Request ->
@@ -122,7 +126,8 @@ def fetch_font(path):
 #                        - return key when 200
 
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
     # app.config["IO"] = IO()
     # port = int(os.environ.get("PORT", 5000))
-    # app.run(host="0.0.0.0", port=port)
+    app = create_app()
+    app.run()
