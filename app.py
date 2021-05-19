@@ -13,7 +13,7 @@ import threading
 
 app = Flask(__name__)
 
-semaphore = threading.Semaphore(5)
+# semaphore = threading.Semaphore(5)
 
 class IO:
     def __init__(self):
@@ -42,14 +42,15 @@ class IO:
 
     def force_start(self):
         while True:
-            gc.collect()
+            # gc.collect()
             # print(threading.active_count(), "\t", self.p)
             if self.q:
-                t = threading.Thread(target=self.main_process, args = (self.q.pop(0),))
-                t.start()
+                self.main_process(self.q.pop(0))
+                # t = threading.Thread(target=self.main_process, args = (self.q.pop(0),))
+                # t.start()
 
     def main_process(self, path):
-        semaphore.acquire()
+        # semaphore.acquire()
         # self.p += 1
         temp_dir = tempfile.mkdtemp()
         os.makedirs(
@@ -62,7 +63,7 @@ class IO:
             os.path.dirname(os.path.abspath(__file__)) + "/default.json",
         )
         shutil.rmtree(temp_dir)
-        semaphore.release()
+        # semaphore.release()
         # self.p -= 1
 
     def font_path(self, path):
