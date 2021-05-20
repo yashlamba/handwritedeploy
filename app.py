@@ -34,11 +34,12 @@ class IO:
         img = cv2.imdecode(imgarr, cv2.IMREAD_COLOR)
         with tempfile.NamedTemporaryFile(dir=self.in_files_dir) as f:
             cv2.imwrite(f.name + ".jpg", img)
+            del img
             # self.q.append(f.name + ".jpg")
             process = threading.Thread(
                 target=self.main_process, args=(f.name + ".jpg",)
             )
-            process.daemon = True
+            # process.daemon = True
             process.start()
             return f.name.split(os.sep)[-1]
 
