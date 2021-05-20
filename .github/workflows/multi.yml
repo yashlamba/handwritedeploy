@@ -17,7 +17,7 @@ jobs:
             python-version: 3.8
         - name:
           run: |
-            pip install aiohttp asyncio
+            pip install aiohttp asyncio requests
         - name: Multiclient
           run: |
             python multiclient.py
