@@ -4,6 +4,7 @@ import tempfile
 from flask import Flask, request, send_file, jsonify, abort
 from flask.wrappers import Response
 import gc
+import subprocess
 
 import numpy as np
 import cv2
@@ -35,11 +36,14 @@ class IO:
         with tempfile.NamedTemporaryFile(dir=self.in_files_dir) as f:
             cv2.imwrite(f.name + ".jpg", img)
             # self.q.append(f.name + ".jpg")
-            process = threading.Thread(
-                target=self.main_process, args=(f.name + ".jpg",)
+            # process = threading.Thread(
+            #     target=main_process, args=(f.name + ".jpg", self.out_file_dir[:],)
+            # )
+            # process.daemon = True
+            # process.start()
+            subprocess.Popen(
+                ["python", "mainprocess.py", f.name + ".jpg", self.out_file_dir]
             )
-            process.daemon = True
-            process.start()
             return f.name.split(os.sep)[-1]
 
     def check_font(self, path):
@@ -54,20 +58,8 @@ class IO:
     #             # t = threading.Thread(target=self.main_process, args = (self.q.pop(0),))
     #             # t.start()
 
-    def main_process(self, path):
-        # semaphore.acquire()
-        # self.p += 1
-        temp_dir = tempfile.mkdtemp()
-        os.makedirs(self.out_file_dir + os.sep + path.split(os.sep)[-1].split(".")[0])
-        converters(
-            path,
-            temp_dir,
-            self.out_file_dir + os.sep + path.split(os.sep)[-1].split(".")[0],
-            os.path.dirname(os.path.abspath(__file__)) + "/default.json",
-        )
-        shutil.rmtree(temp_dir)
-        # semaphore.release()
-        # self.p -= 1
+    # semaphore.release()
+    # self.p -= 1
 
     def font_path(self, path):
         return self.out_file_dir + os.sep + path + ".ttf"
