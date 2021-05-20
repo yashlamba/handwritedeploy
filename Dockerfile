@@ -17,4 +17,4 @@ COPY . .
 RUN pip install -r requirements.txt
 COPY default.json default.json
 
-CMD ["gunicorn", "app:create_app()"]
+CMD ["gunicorn", "app:create_app()", "-b", "0.0.0.0:5000", "--log-level", "debug"]
