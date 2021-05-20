@@ -26,28 +26,33 @@ class IO:
         os.makedirs(self.in_files_dir, exist_ok=True)
         os.makedirs(self.out_file_dir, exist_ok=True)
         # self.p = 0
-        self.q = []
-        x = threading.Thread(target=self.force_start)
-        x.start()
+        # self.q = []
+        # x = threading.Thread(target=self.force_start)
+        # x.start()
 
     def add_image(self, imgarr):
         img = cv2.imdecode(imgarr, cv2.IMREAD_COLOR)
         with tempfile.NamedTemporaryFile(dir=self.in_files_dir) as f:
             cv2.imwrite(f.name + ".jpg", img)
-            self.q.append(f.name + ".jpg")
+            # self.q.append(f.name + ".jpg")
+            process = threading.Thread(
+                target=self.main_process, args=(f.name + ".jpg",)
+            )
+            process.daemon = True
+            process.start()
             return f.name.split(os.sep)[-1]
 
     def check_font(self, path):
         return os.path.exists(self.out_file_dir + os.sep + path + ".ttf")
 
-    def force_start(self):
-        while True:
-            # gc.collect()
-            # print(threading.active_count(), "\t", self.p)
-            if self.q:
-                self.main_process(self.q.pop(0))
-                # t = threading.Thread(target=self.main_process, args = (self.q.pop(0),))
-                # t.start()
+    # def force_start(self):
+    #     while True:
+    #         # gc.collect()
+    #         # print(threading.active_count(), "\t", self.p)
+    #         if self.q:
+    #             self.main_process(self.q.pop(0))
+    #             # t = threading.Thread(target=self.main_process, args = (self.q.pop(0),))
+    #             # t.start()
 
     def main_process(self, path):
         # semaphore.acquire()
