@@ -41,9 +41,9 @@ class IO:
             # )
             # process.daemon = True
             # process.start()
-            subprocess.Popen(
-                ["python", "mainprocess.py", f.name + ".jpg", self.out_file_dir]
-            )
+            # subprocess.Popen(
+            #     ["python", "mainprocess.py", f.name + ".jpg", self.out_file_dir]
+            # )
             return f.name.split(os.sep)[-1]
 
     def check_font(self, path):
