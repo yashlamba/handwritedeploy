@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+import time
 from handwrite.cli import converters
 
 currQ = []
@@ -14,14 +15,14 @@ def handwrite_background():
 
     while True:
         root, dirs, files = next(os.walk("infiles/"))
-        if files and len(currQ) < 3:
-            for i in range(3 - len(currQ)):
-                currQ.append(files.pop())
+        while len(currQ) < 3 and files:
+            currQ.append(files.pop())
         else:
             if currQ:
                 path = currQ.pop(0)
                 temp_dir = tempfile.mkdtemp()
                 os.makedirs(out_files_dir + os.sep + path.split(".")[0])
+                time.sleep(5)
                 converters(
                     in_files_dir + os.sep + path,
                     temp_dir,

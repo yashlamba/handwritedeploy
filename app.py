@@ -94,7 +94,7 @@ def create_app():
                 as_attachment=True,
             )
             shutil.rmtree(app.config["IO"].out_file_dir + os.sep + path)
-            os.remove(app.config["IO"].in_files_dir + os.sep + path + ".jpg")
+            # os.remove(app.config["IO"].in_files_dir + os.sep + path + ".jpg")
             return fontfile
         else:
             abort(404)
