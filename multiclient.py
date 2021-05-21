@@ -4,8 +4,8 @@ import requests
 import time
 
 
-addr = "http://handwritetest.herokuapp.com"
-# addr = "http://localhost:5000"
+# addr = "http://handwritetest.herokuapp.com"
+addr = "http://localhost:5000"
 test_url = addr + "/handwrite/test"
 content_type = "image/jpeg"
 headers = {"content-type": content_type}
@@ -22,7 +22,7 @@ async def make_account():
     async with aiohttp.ClientSession() as session:
         post_tasks = []
         # prepare the coroutines that post
-        async for x in make_numbers(1, 51):
+        async for x in make_numbers(1, 11):
             post_tasks.append(do_post(session, x))
         # now execute them all at once
         await asyncio.gather(*post_tasks)
