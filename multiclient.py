@@ -4,9 +4,9 @@ import requests
 import time
 
 
-# addr = "http://handwritetest.herokuapp.com"
-addr = "http://localhost:5000"
-test_url = addr + "/handwrite/test"
+addr = "http://handwritetest.herokuapp.com"
+# addr = "http://localhost:5000"
+test_url = addr + "/handwrite/input"
 content_type = "image/jpeg"
 headers = {"content-type": content_type}
 data = open("excellent2.jpg", "rb").read()
@@ -39,10 +39,10 @@ async def do_post(session, i):
             time.sleep(2)
             # print(dat11ares)
             checkstatus = requests.get(
-                addr + "/handwrite/" + eval(str(datares))["path"]
+                addr + "/handwrite/status/" + eval(str(datares))["path"]
             )
             print(f"Status for {i} = {checkstatus.text}")
-            if checkstatus.text == "Done":
+            if eval(checkstatus.text)["status"] == 0:
                 font = requests.post(addr + "/handwrite/fetch/" + eval(datares)["path"])
                 # print(font.content)
                 break

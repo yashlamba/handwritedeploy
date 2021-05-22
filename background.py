@@ -1,51 +1,70 @@
 import os
 import shutil
 import tempfile
-import time
 import gc
+import time
 from handwrite.cli import converters
 
-currQ = []
+
+CURRENT_Q = []  # TODO Use Queue?
 
 
 def handwrite_background():
-    in_files_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "infiles")
-    status_files_dir = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "status"
-    )
-    out_files_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "outfiles")
+    server_dir = os.path.dirname(os.path.abspath(__file__))
+    in_files_dir = os.path.join(server_dir, "infiles")
+    out_files_dir = os.path.join(server_dir, "outfiles")
+    status_files_dir = os.path.join(server_dir, "status")
+
     shutil.rmtree(in_files_dir, ignore_errors=True)
     shutil.rmtree(status_files_dir, ignore_errors=True)
     shutil.rmtree(out_files_dir, ignore_errors=True)
-    os.makedirs(in_files_dir, exist_ok=True)
-    os.makedirs(status_files_dir, exist_ok=True)
-    os.makedirs(out_files_dir, exist_ok=True)
 
-    def call():
-        count = 0
-        while True:
-            if len(currQ) == 0:
-                root, dirs, files = next(os.walk(status_files_dir))
-                while len(currQ) <= 3 and files:
-                    currQ.append(files.pop())
-            if currQ:
-                path = currQ.pop(0) + ".jpg"
-                temp_dir = tempfile.mkdtemp()
-                os.makedirs(out_files_dir + os.sep + path.split(".")[0])
-                # time.sleep(2)
-                converters(
-                    in_files_dir + os.sep + path,
-                    temp_dir,
-                    out_files_dir + os.sep + path.split(".")[0],
-                    os.path.dirname(os.path.abspath(__file__)) + "/default.json",
-                )
-                os.remove(in_files_dir + os.sep + path)
-                os.remove(status_files_dir + os.sep + path.split(".")[0])
-                shutil.rmtree(temp_dir)
-                count += 1
-            if count == 6:
-                break
-        gc.collect()
+    os.makedirs(in_files_dir)
+    os.makedirs(status_files_dir)
+    os.makedirs(out_files_dir)
 
+    prev_time = time.time()
+    count = 0
     while True:
-        call()
+        # TODO
+        # We are processing one at a time
+        # in batches of 3, these batches are for
+        # future threading support.
+        if len(CURRENT_Q) == 0:
+            mtime = lambda x: os.stat(status_files_dir + os.sep + x).st_mtime
+            files = sorted(os.listdir(status_files_dir), key=mtime)
+            while len(CURRENT_Q) < 4 and files:
+                CURRENT_Q.append(files.pop(0))
+
+        if CURRENT_Q:
+            # TODO
+            # Return something for images that didn't work.
+            # Maybe create a file named in outfiles/path ERROR
+            print(CURRENT_Q)
+            name = CURRENT_Q.pop(0)
+            image_name = name + ".jpg"
+            temp_dir = tempfile.mkdtemp()
+            os.makedirs(out_files_dir + os.sep + name)
+            converters(
+                in_files_dir + os.sep + image_name,
+                temp_dir,
+                out_files_dir + os.sep + name,
+                os.path.dirname(os.path.abspath(__file__)) + "/default.json",
+            )
+            os.remove(in_files_dir + os.sep + image_name)
+            os.remove(status_files_dir + os.sep + name)
+            shutil.rmtree(temp_dir)
+            count += 1
+
+        if count == 6:
+            gc.collect()
+            count = 0
+
+        if (time.time() - prev_time) / 60 > 2:
+            for dir in os.listdir(out_files_dir):
+                if (
+                    time.time() - os.stat(out_files_dir + os.sep + dir).st_mtime
+                ) / 60 > 5:
+                    print(f"Deleting: {out_files_dir + os.sep + dir}")
+                    shutil.rmtree(out_files_dir + os.sep + dir)
+            prev_time = time.time()
