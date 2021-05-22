@@ -5,10 +5,13 @@ import tempfile
 import cv2
 import numpy as np
 from flask import Flask, request, send_file, jsonify
+from flask_cors import CORS
 
 
 def create_app():
     app = Flask(__name__)
+    CORS(app)
+    # app.config["CORS_HEADERS"] = "Content-Type"
 
     server_dir = os.path.dirname(os.path.abspath(__file__))
     in_files_dir = os.path.join(server_dir, "infiles")
