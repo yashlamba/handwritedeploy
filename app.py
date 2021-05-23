@@ -22,7 +22,8 @@ def create_app():
     def receive_image():
         # TODO Code for when image isn't successfully created, also check exception handlers
         # in Flask
-        imgarr = np.frombuffer(request.data, np.uint8)
+        image = request.files["image"].read()
+        imgarr = np.frombuffer(image, np.uint8)
         img = cv2.imdecode(imgarr, cv2.IMREAD_COLOR)
 
         path = None
