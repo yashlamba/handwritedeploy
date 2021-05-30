@@ -1,10 +1,14 @@
 import asyncio
 import aiohttp
+import requests
+import time
 
 
 addr = "http://handwritetest.herokuapp.com"
 # addr = "http://localhost:5000"
-test_url = addr + "/handwrite/test"
+
+test_url = addr + "/handwrite/input"
+
 content_type = "image/jpeg"
 headers = {"content-type": content_type}
 data = open("excellent2.jpg", "rb").read()
@@ -20,7 +24,9 @@ async def make_account():
     async with aiohttp.ClientSession() as session:
         post_tasks = []
         # prepare the coroutines that post
-        async for x in make_numbers(1, 11):
+
+        async for x in make_numbers(1, 51):
+
             post_tasks.append(do_post(session, x))
         # now execute them all at once
         await asyncio.gather(*post_tasks)
@@ -37,17 +43,20 @@ async def do_post(session, i):
             time.sleep(2)
             # print(dat11ares)
             checkstatus = requests.get(
-                addr + "/handwrite/" + eval(str(datares))["path"]
+                addr + "/handwrite/status/" + eval(str(datares))["path"]
             )
             print(f"Status for {i} = {checkstatus.text}")
-            if checkstatus.text == "Done":
+            if eval(checkstatus.text)["status"] == 0:
+
                 font = requests.post(addr + "/handwrite/fetch/" + eval(datares)["path"])
                 # print(font.content)
                 break
 
         # print("-> Created account number %d" % x)
-        with open(f"new{i}.ttf", "wb+") as f:
-            f.write(datares)
+        print(f"FETCHED {i}:", font.content[:5])
+        # with open(f"new{i}.ttf", "wb+") as f:
+        #     f.write(font.content)
+
 
 
 loop = asyncio.get_event_loop()
